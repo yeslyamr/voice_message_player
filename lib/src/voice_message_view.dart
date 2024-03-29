@@ -4,6 +4,10 @@ import 'package:voice_message_package/src/helpers/utils.dart';
 import 'package:voice_message_package/src/voice_controller.dart';
 import 'package:voice_message_package/src/widgets/noises.dart';
 import 'package:voice_message_package/src/widgets/play_pause_button.dart';
+import 'package:voice_message_package/src/widgets/single_noise.dart';
+import 'package:flutter/material.dart';
+import 'package:voice_message_package/src/widgets/loading_widget.dart';
+import 'package:voice_message_package/voice_message_package.dart';
 
 /// A widget that displays a voice message view with play/pause functionality.
 ///
@@ -88,34 +92,85 @@ class VoiceMessageView extends StatelessWidget {
         /// update ui when change play status
         valueListenable: controller.updater,
         builder: (context, value, child) {
-          return Row(
-            mainAxisSize: MainAxisSize.min,
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              /// play pause button
-              PlayPauseButton(controller: controller, color: color, size: size),
-
-              ///
-              const SizedBox(width: 10),
-
-              /// slider & noises
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+              Row(
+                mainAxisSize: MainAxisSize.max,
+                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  const SizedBox(height: 8),
+                  /// play pause button
+                  InkWell(
+                    onTap: controller.isDownloadError
+
+                        /// faild loading audio
+                        ? controller.play
+                        : controller.isPlaying
+
+                            /// playing or pause
+                            ? controller.pausePlaying
+                            : controller.play,
+                    child: Container(
+                      height: size,
+                      width: size,
+                      // decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+                      child: controller.isDownloading
+                          ? LoadingWidget(
+                              progress: controller.downloadProgress,
+                              onClose: () {
+                                controller.cancelDownload();
+                              },
+                            )
+                          : Icon(
+                              /// faild to load audio
+                              controller.isDownloadError
+
+                                  /// show refresh icon
+                                  ? Icons.refresh
+
+                                  /// playing or pause
+                                  : controller.isPlaying
+                                      ? Icons.pause_rounded
+                                      : Icons.play_arrow_rounded,
+
+                              /// icon color
+                              color: color,
+                            ),
+                    ),
+                  ),
+
+                  ///
+                  const SizedBox(width: 10),
+
+                  /// slider & noises
                   _noises(newTHeme),
-                  const SizedBox(height: 4),
-                  Text(controller.remindingTime, style: counterTextStyle),
+
+                  ///
+                  const SizedBox(width: 12),
+
+                  /// speed button
+                  InkWell(
+                    onTap: controller.changeSpeed,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 3, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: color,
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      child: Text(
+                        controller.speed.playSpeedStr,
+                        style: circlesTextStyle,
+                      ),
+                    ),
+                  ),
+
+                  ///
                 ],
               ),
-
-              ///
-              const SizedBox(width: 12),
-
-              /// speed button
-              _changeSpeedButton(color),
-
-              ///
-              const SizedBox(width: 10),
+              Padding(
+                padding: EdgeInsets.only(left: size + 10),
+                child: Text(controller.remindingTime, style: counterTextStyle),
+              ),
             ],
           );
         },
@@ -130,28 +185,23 @@ class VoiceMessageView extends StatelessWidget {
           alignment: Alignment.center,
           children: [
             /// noises
-            Noises(
-              rList: controller.randoms!,
-              activeSliderColor: activeSliderColor,
-            ),
-
-            /// slider
-            AnimatedBuilder(
-              animation: CurvedAnimation(
-                parent: controller.animController,
-                curve: Curves.ease,
-              ),
-              builder: (BuildContext context, Widget? child) {
-                return Positioned(
-                  left: controller.animController.value,
-                  child: Container(
-                    width: controller.noiseWidth,
-                    height: 6.w(),
-                    color:
-                        notActiveSliderColor ?? backgroundColor.withOpacity(.4),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                for (int i = 0; i < controller.randoms!.length; i++)
+                  Builder(
+                    builder: (context) {
+                      final asdf =
+                          (controller.animController.value / controller.noiseWidth * controller.randoms!.length)
+                              .floor();
+                      return SingleNoise(
+                        activeSliderColor:
+                            i >= asdf ? notActiveSliderColor ?? backgroundColor.withOpacity(.4) : activeSliderColor,
+                        height: controller.randoms![i],
+                      );
+                    },
                   ),
-                );
-              },
+              ],
             ),
             Opacity(
               opacity: 0,
@@ -219,8 +269,7 @@ class CustomTrackShape extends RoundedRectSliderTrackShape {
     bool isDiscrete = false,
   }) {
     const double trackHeight = 10;
-    final double trackLeft = offset.dx,
-        trackTop = offset.dy + (parentBox.size.height - trackHeight) / 2;
+    final double trackLeft = offset.dx, trackTop = offset.dy + (parentBox.size.height - trackHeight) / 2;
     final double trackWidth = parentBox.size.width;
     return Rect.fromLTWH(trackLeft, trackTop, trackWidth, trackHeight);
   }
