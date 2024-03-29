@@ -14,8 +14,7 @@ class LoadingWidget extends StatefulWidget {
   _LoadingWidgetState createState() => _LoadingWidgetState();
 }
 
-class _LoadingWidgetState extends State<LoadingWidget>
-    with SingleTickerProviderStateMixin {
+class _LoadingWidgetState extends State<LoadingWidget> with SingleTickerProviderStateMixin {
   late AnimationController _controller;
 
   @override
@@ -41,7 +40,7 @@ class _LoadingWidgetState extends State<LoadingWidget>
                 padding: const EdgeInsets.all(4.0),
                 child: CircularProgressIndicator(
                   strokeWidth: 2,
-                  color: Colors.white,
+                  color: Color(0xFF878882),
                   value: widget.progress ?? 0,
                 ),
               ),
@@ -52,7 +51,7 @@ class _LoadingWidgetState extends State<LoadingWidget>
           child: IconButton(
             icon: const Icon(
               Icons.close,
-              color: Colors.white,
+              color: Color(0xFF878882),
             ),
             onPressed: () => widget.onClose(),
           ),
