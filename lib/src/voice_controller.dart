@@ -37,7 +37,7 @@ class VoiceController extends MyTicker {
   final Function() onPlaying;
   final Function() onPause;
   final Function(Object)? onError;
-  final double noiseWidth = 50.5.w();
+  final double noiseWidth = 56.w();
   late AnimationController animController;
   final AudioPlayer _player = AudioPlayer();
   final bool isFile;
@@ -113,8 +113,7 @@ class VoiceController extends MyTicker {
         await startPlaying(path);
         onPlaying();
       } else {
-        downloadStreamSubscription = _getFileFromCacheWithProgress()
-            .listen((FileResponse fileResponse) async {
+        downloadStreamSubscription = _getFileFromCacheWithProgress().listen((FileResponse fileResponse) async {
           if (fileResponse is FileInfo) {
             await startPlaying(fileResponse.file.path);
             onPlaying();
@@ -305,8 +304,7 @@ class VoiceController extends MyTicker {
   Future setMaxDuration(String path) async {
     try {
       /// get the max duration from the path or cloud
-      final maxDuration =
-          isFile ? await _player.setFilePath(path) : await _player.setUrl(path);
+      final maxDuration = isFile ? await _player.setFilePath(path) : await _player.setUrl(path);
       if (maxDuration != null) {
         this.maxDuration = maxDuration;
         animController.duration = maxDuration;
